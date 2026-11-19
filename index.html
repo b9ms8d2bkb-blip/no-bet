@@ -1,0 +1,2918 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>NO BET — ギャンブル遮断＆継続トラッカー</title>
+  <style>
+    /* ==========================================================================
+       NO BET — Design Tokens & Base Styles
+       Calm, utilitarian dark-mode UI (Zero external CDN dependencies)
+       ========================================================================== */
+    :root {
+      --bg-base: #0f172a;
+      --bg-surface: #1e293b;
+      --bg-elevated: #273549;
+      --bg-input: #0b1220;
+      --border: #334155;
+      --border-subtle: rgba(148, 163, 184, 0.16);
+
+      --text-primary: #f8fafc;
+      --text-secondary: #cbd5e1;
+      --text-muted: #94a3b8;
+
+      --emerald: #10b981;
+      --emerald-dim: rgba(16, 185, 129, 0.14);
+      --emerald-border: rgba(16, 185, 129, 0.35);
+
+      --danger: #ef4444;
+      --danger-dark: #dc2626;
+      --danger-dim: rgba(239, 68, 68, 0.14);
+      --danger-border: rgba(239, 68, 68, 0.38);
+
+      --amber: #f59e0b;
+      --amber-dim: rgba(245, 158, 11, 0.15);
+
+      --radius-sm: 8px;
+      --radius-md: 12px;
+      --radius-lg: 16px;
+      --radius-full: 9999px;
+
+      --nav-height: 68px;
+      --max-width: 520px;
+      --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Hiragino Sans",
+        "Hiragino Kaku Gothic ProN", "Yu Gothic", "Meiryo", sans-serif;
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      background-color: #090f1d;
+      color: var(--text-primary);
+      font-family: var(--font-sans);
+      font-size: 15px;
+      line-height: 1.55;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+
+    button, input, textarea, select {
+      font-family: inherit;
+      font-size: inherit;
+      color: inherit;
+    }
+
+    button {
+      cursor: pointer;
+      border: none;
+      background: none;
+    }
+
+    /* App Container */
+    .app-shell {
+      width: 100%;
+      max-width: var(--max-width);
+      min-height: 100dvh;
+      margin: 0 auto;
+      background-color: var(--bg-base);
+      border-left: 1px solid var(--border-subtle);
+      border-right: 1px solid var(--border-subtle);
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+
+    /* Top Header */
+    .app-header {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      background: rgba(15, 23, 42, 0.92);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--border-subtle);
+      padding: 14px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .brand-mark {
+      width: 30px;
+      height: 30px;
+      border-radius: var(--radius-sm);
+      background: var(--emerald-dim);
+      border: 1px solid var(--emerald-border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--emerald);
+      flex-shrink: 0;
+    }
+
+    .brand-title {
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      line-height: 1.2;
+    }
+
+    .brand-sub {
+      font-size: 11px;
+      color: var(--text-muted);
+      letter-spacing: 0.02em;
+    }
+
+    .header-status {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--emerald);
+      background: var(--emerald-dim);
+      border: 1px solid var(--emerald-border);
+      padding: 4px 10px;
+      border-radius: var(--radius-full);
+      white-space: nowrap;
+    }
+
+    /* Main Content Area */
+    .app-main {
+      flex: 1;
+      padding: 16px 16px calc(var(--nav-height) + 28px + env(safe-area-inset-bottom));
+    }
+
+    .tab-panel {
+      display: none;
+      animation: fadeIn 0.18s ease-out;
+    }
+
+    .tab-panel.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Cards & Typography */
+    .card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 16px;
+      margin-bottom: 14px;
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .card-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-secondary);
+      letter-spacing: 0.03em;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      margin: 0;
+    }
+
+    .section-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-muted);
+      margin: 0 0 8px 2px;
+      letter-spacing: 0.04em;
+    }
+
+    .tabular {
+      font-variant-numeric: tabular-nums;
+    }
+
+    .muted {
+      color: var(--text-muted);
+    }
+
+    .small {
+      font-size: 12px;
+    }
+
+    /* Streak Hero Card */
+    .streak-card {
+      background: linear-gradient(180deg, rgba(16, 185, 129, 0.09) 0%, var(--bg-surface) 100%);
+      border: 1px solid var(--emerald-border);
+      text-align: center;
+      padding: 20px 16px 18px;
+    }
+
+    .streak-caption {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--emerald);
+      letter-spacing: 0.06em;
+      margin-bottom: 10px;
+    }
+
+    .streak-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .streak-unit {
+      background: rgba(15, 23, 42, 0.72);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 10px 4px;
+    }
+
+    .streak-num {
+      display: block;
+      font-size: 26px;
+      font-weight: 800;
+      line-height: 1.15;
+      color: var(--text-primary);
+    }
+
+    .streak-unit:first-child .streak-num {
+      color: var(--emerald);
+    }
+
+    .streak-label {
+      display: block;
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    .streak-since {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    /* Metrics Grid */
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .metric-box {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 12px 10px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .metric-label {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+      line-height: 1.3;
+    }
+
+    .metric-val {
+      font-size: 17px;
+      font-weight: 800;
+      color: var(--text-primary);
+      line-height: 1.2;
+      word-break: break-word;
+    }
+
+    .metric-val.emerald {
+      color: var(--emerald);
+    }
+
+    .metric-sub {
+      font-size: 10px;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    /* Progress Bar */
+    .progress-track {
+      width: 100%;
+      height: 8px;
+      background: var(--bg-input);
+      border-radius: var(--radius-full);
+      overflow: hidden;
+      border: 1px solid var(--border-subtle);
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: var(--emerald);
+      border-radius: var(--radius-full);
+      transition: width 0.35s ease;
+    }
+
+    .progress-fill.amber {
+      background: var(--amber);
+    }
+
+    /* Buttons */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      width: 100%;
+      min-height: 46px;
+      padding: 12px 16px;
+      border-radius: var(--radius-md);
+      font-size: 14px;
+      font-weight: 700;
+      transition: transform 0.1s ease, background-color 0.15s ease, border-color 0.15s ease, opacity 0.15s ease;
+      text-decoration: none;
+    }
+
+    .btn:active {
+      transform: scale(0.985);
+    }
+
+    .btn-primary {
+      background: var(--emerald);
+      color: #052e16;
+    }
+
+    .btn-primary:hover {
+      background: #0ea572;
+    }
+
+    .btn-checked {
+      background: var(--emerald-dim);
+      color: var(--emerald);
+      border: 1px solid var(--emerald-border);
+    }
+
+    .btn-secondary {
+      background: var(--bg-elevated);
+      color: var(--text-primary);
+      border: 1px solid var(--border);
+    }
+
+    .btn-secondary:hover {
+      background: #334155;
+    }
+
+    .btn-emergency {
+      background: var(--danger-dark);
+      color: #ffffff;
+      min-height: 56px;
+      font-size: 15px;
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      box-shadow: 0 6px 20px rgba(220, 38, 38, 0.25);
+    }
+
+    .btn-emergency:hover {
+      background: var(--danger);
+    }
+
+    .btn-danger-outline {
+      background: var(--danger-dim);
+      color: #fca5a5;
+      border: 1px solid var(--danger-border);
+    }
+
+    .btn-danger-outline:hover {
+      background: rgba(239, 68, 68, 0.22);
+    }
+
+    .btn-sm {
+      width: auto;
+      min-height: 34px;
+      padding: 6px 12px;
+      font-size: 12px;
+      border-radius: var(--radius-sm);
+    }
+
+    .icon-btn {
+      width: 34px;
+      height: 34px;
+      border-radius: var(--radius-sm);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-muted);
+      background: rgba(15, 23, 42, 0.5);
+      border: 1px solid var(--border-subtle);
+      flex-shrink: 0;
+    }
+
+    .icon-btn:hover {
+      color: var(--text-primary);
+      border-color: var(--border);
+    }
+
+    /* Vow Banner */
+    .vow-box {
+      background: rgba(15, 23, 42, 0.65);
+      border-left: 3px solid var(--emerald);
+      border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+      padding: 12px 14px;
+      font-size: 14px;
+      color: var(--text-primary);
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    /* Check-in Card */
+    .checkin-meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 10px;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .text-link-btn {
+      font-size: 12px;
+      color: var(--text-muted);
+      text-decoration: underline;
+      padding: 4px;
+    }
+
+    .text-link-btn:hover {
+      color: var(--text-secondary);
+    }
+
+    /* Calendar */
+    .cal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+
+    .cal-month {
+      font-size: 15px;
+      font-weight: 700;
+    }
+
+    .cal-weekdays, .cal-days {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 4px;
+      text-align: center;
+    }
+
+    .cal-weekday {
+      font-size: 11px;
+      color: var(--text-muted);
+      padding-bottom: 6px;
+      font-weight: 600;
+    }
+
+    .cal-day {
+      aspect-ratio: 1 / 1;
+      border-radius: var(--radius-sm);
+      background: rgba(15, 23, 42, 0.55);
+      border: 1px solid transparent;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      transition: border-color 0.15s ease, background-color 0.15s ease;
+    }
+
+    .cal-day.empty {
+      background: transparent;
+      pointer-events: none;
+    }
+
+    .cal-day.checked {
+      background: var(--emerald-dim);
+      border-color: var(--emerald-border);
+      color: var(--emerald);
+    }
+
+    .cal-day.today {
+      border-color: var(--text-primary);
+    }
+
+    .cal-day.selected {
+      outline: 2px solid #38bdf8;
+      outline-offset: -2px;
+    }
+
+    .cal-dots {
+      display: flex;
+      gap: 3px;
+      position: absolute;
+      bottom: 4px;
+    }
+
+    .dot {
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+    }
+
+    .dot-emerald { background: var(--emerald); }
+    .dot-amber { background: var(--amber); }
+    .dot-red { background: var(--danger); }
+
+    .cal-legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 12px;
+      padding-top: 10px;
+      border-top: 1px solid var(--border-subtle);
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .legend-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .cal-detail-box {
+      margin-top: 12px;
+      padding: 12px;
+      border-radius: var(--radius-md);
+      background: rgba(15, 23, 42, 0.72);
+      border: 1px solid var(--border-subtle);
+      font-size: 13px;
+    }
+
+    /* Trigger Breakdown */
+    .trigger-row {
+      margin-bottom: 12px;
+    }
+
+    .trigger-row:last-child {
+      margin-bottom: 0;
+    }
+
+    .trigger-meta {
+      display: flex;
+      justify-content: space-between;
+      font-size: 13px;
+      margin-bottom: 5px;
+    }
+
+    /* Log History List */
+    .filter-chips {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-bottom: 12px;
+    }
+
+    .chip {
+      padding: 6px 12px;
+      border-radius: var(--radius-full);
+      font-size: 12px;
+      font-weight: 600;
+      background: var(--bg-input);
+      border: 1px solid var(--border);
+      color: var(--text-secondary);
+      transition: all 0.15s ease;
+    }
+
+    .chip.active {
+      background: var(--emerald-dim);
+      border-color: var(--emerald);
+      color: var(--emerald);
+    }
+
+    .chip.active-danger {
+      background: var(--danger-dim);
+      border-color: var(--danger);
+      color: #fca5a5;
+    }
+
+    .log-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .log-item {
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 12px;
+    }
+
+    .log-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 4px;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 8px;
+      border-radius: var(--radius-full);
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .badge-emerald {
+      background: var(--emerald-dim);
+      color: var(--emerald);
+    }
+
+    .badge-amber {
+      background: var(--amber-dim);
+      color: var(--amber);
+    }
+
+    .badge-red {
+      background: var(--danger-dim);
+      color: #fca5a5;
+    }
+
+    /* Checklist */
+    .notice-banner {
+      background: rgba(245, 158, 11, 0.1);
+      border: 1px solid rgba(245, 158, 11, 0.32);
+      border-radius: var(--radius-md);
+      padding: 12px 14px;
+      margin-bottom: 14px;
+      font-size: 13px;
+      color: #fde68a;
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+    }
+
+    .checklist-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .checklist-item:last-child {
+      border-bottom: none;
+      padding-bottom: 2px;
+    }
+
+    .check-toggle {
+      width: 22px;
+      height: 22px;
+      border-radius: 6px;
+      border: 2px solid var(--border);
+      background: var(--bg-input);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      margin-top: 2px;
+      transition: all 0.15s ease;
+    }
+
+    .check-toggle.done {
+      background: var(--emerald);
+      border-color: var(--emerald);
+      color: #052e16;
+    }
+
+    .check-text {
+      flex: 1;
+      font-size: 14px;
+      color: var(--text-primary);
+      cursor: pointer;
+    }
+
+    .check-text.done {
+      color: var(--text-muted);
+      text-decoration: line-through;
+    }
+
+    /* Hotlines */
+    .hotline-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 12px;
+      background: rgba(15, 23, 42, 0.65);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      margin-bottom: 8px;
+    }
+
+    .hotline-item:last-child {
+      margin-bottom: 0;
+    }
+
+    .hotline-name {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .hotline-desc {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    .hotline-call {
+      flex-shrink: 0;
+      padding: 8px 12px;
+      border-radius: var(--radius-sm);
+      background: var(--emerald-dim);
+      border: 1px solid var(--emerald-border);
+      color: var(--emerald);
+      font-size: 13px;
+      font-weight: 700;
+      text-decoration: none;
+      white-space: nowrap;
+    }
+
+    /* Forms & Inputs */
+    .field {
+      margin-bottom: 14px;
+    }
+
+    .field:last-child {
+      margin-bottom: 0;
+    }
+
+    .field-label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      margin-bottom: 6px;
+    }
+
+    .input, .textarea {
+      width: 100%;
+      background: var(--bg-input);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 10px 12px;
+      color: var(--text-primary);
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.15s ease;
+    }
+
+    .input:focus, .textarea:focus {
+      border-color: var(--emerald);
+    }
+
+    .textarea {
+      min-height: 82px;
+      resize: vertical;
+      line-height: 1.5;
+    }
+
+    .input-row {
+      display: flex;
+      gap: 8px;
+    }
+
+    .input-row .input {
+      flex: 1;
+    }
+
+    /* Bottom Navigation */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 100%;
+      max-width: var(--max-width);
+      background: rgba(15, 23, 42, 0.96);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-top: 1px solid var(--border);
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      padding-bottom: env(safe-area-inset-bottom);
+      z-index: 30;
+    }
+
+    .nav-btn {
+      height: var(--nav-height);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      color: var(--text-muted);
+      font-size: 11px;
+      font-weight: 600;
+      transition: color 0.15s ease;
+    }
+
+    .nav-btn.active {
+      color: var(--emerald);
+    }
+
+    /* Modals */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 50;
+      background: rgba(2, 6, 23, 0.86);
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+
+    .modal-overlay.open {
+      display: flex;
+    }
+
+    .modal-fullscreen {
+      padding: 0;
+      align-items: stretch;
+    }
+
+    .modal-sheet {
+      width: 100%;
+      max-width: var(--max-width);
+      background: var(--bg-base);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      max-height: 92dvh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      margin: 0 auto;
+    }
+
+    .modal-fullscreen .modal-sheet {
+      max-height: 100dvh;
+      height: 100dvh;
+      border-radius: 0;
+      border: none;
+    }
+
+    .modal-header {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--bg-surface);
+      flex-shrink: 0;
+    }
+
+    .modal-title {
+      font-size: 15px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin: 0;
+    }
+
+    .modal-body {
+      padding: 16px;
+      overflow-y: auto;
+      flex: 1;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    /* Urge Breaker Specifics */
+    .breathing-stage {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 20px 16px;
+      text-align: center;
+      margin-bottom: 14px;
+    }
+
+    .breath-visual {
+      width: 148px;
+      height: 148px;
+      margin: 8px auto 14px;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .breath-ring-outer {
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      border: 2px solid var(--border);
+    }
+
+    .breath-circle {
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(16, 185, 129, 0.35), rgba(16, 185, 129, 0.1));
+      border: 2px solid var(--emerald);
+      transition: transform 3.8s linear, border-color 0.3s ease;
+      position: absolute;
+    }
+
+    .breath-circle.expand {
+      transform: scale(1.92);
+    }
+
+    .breath-circle.hold-full {
+      transform: scale(1.92);
+      border-color: #38bdf8;
+    }
+
+    .breath-circle.contract {
+      transform: scale(1);
+    }
+
+    .breath-circle.hold-empty {
+      transform: scale(1);
+      border-color: var(--text-muted);
+    }
+
+    .breath-center {
+      position: relative;
+      z-index: 2;
+      text-align: center;
+    }
+
+    .breath-phase-text {
+      font-size: 14px;
+      font-weight: 800;
+      color: var(--text-primary);
+    }
+
+    .breath-timer-big {
+      font-size: 28px;
+      font-weight: 800;
+      color: var(--emerald);
+      line-height: 1.2;
+      margin-top: 2px;
+    }
+
+    .breath-controls {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+      margin-top: 10px;
+    }
+
+    /* Reality Check Table */
+    .reality-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .reality-stat {
+      background: rgba(15, 23, 42, 0.72);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      padding: 10px;
+    }
+
+    .reality-stat-label {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .reality-stat-val {
+      font-size: 15px;
+      font-weight: 800;
+      margin-top: 2px;
+    }
+
+    .reality-stat-val.loss {
+      color: #fca5a5;
+    }
+
+    .reality-life-box {
+      margin-top: 10px;
+      padding: 10px 12px;
+      border-radius: var(--radius-sm);
+      background: var(--emerald-dim);
+      border: 1px solid var(--emerald-border);
+      font-size: 12px;
+      color: #d1fae5;
+    }
+
+    /* Alternative Action Box */
+    .alt-highlight {
+      background: rgba(15, 23, 42, 0.78);
+      border: 1px solid var(--emerald-border);
+      border-radius: var(--radius-md);
+      padding: 14px;
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 10px;
+      text-align: center;
+    }
+
+    .intensity-row {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 6px;
+    }
+
+    .intensity-btn {
+      padding: 10px 0;
+      border-radius: var(--radius-sm);
+      background: var(--bg-input);
+      border: 1px solid var(--border);
+      font-weight: 700;
+      font-size: 14px;
+      color: var(--text-secondary);
+    }
+
+    .intensity-btn.active {
+      background: var(--danger-dim);
+      border-color: var(--danger);
+      color: #fca5a5;
+    }
+
+    /* Custom Action Tag List in Settings */
+    .action-item-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 8px 10px;
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      margin-bottom: 6px;
+      font-size: 13px;
+    }
+
+    /* Toast Notification */
+    .toast {
+      position: fixed;
+      bottom: calc(var(--nav-height) + 16px + env(safe-area-inset-bottom));
+      left: 50%;
+      transform: translateX(-50%) translateY(16px);
+      background: #064e3b;
+      color: #ecfdf5;
+      border: 1px solid var(--emerald);
+      padding: 10px 16px;
+      border-radius: var(--radius-full);
+      font-size: 13px;
+      font-weight: 600;
+      z-index: 90;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease, transform 0.2s ease;
+      max-width: calc(100vw - 32px);
+      text-align: center;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    .toast.danger {
+      background: #450a0a;
+      color: #fee2e2;
+      border-color: var(--danger);
+    }
+
+    /* Utility spacing */
+    .mt-2 { margin-top: 8px; }
+    .mt-3 { margin-top: 12px; }
+    .mb-2 { margin-bottom: 8px; }
+    .flex-between { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+    .empty-state {
+      text-align: center;
+      padding: 20px 12px;
+      color: var(--text-muted);
+      font-size: 13px;
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <!-- Top Header -->
+    <header class="app-header">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            <path d="m9 12 2 2 4-4"/>
+          </svg>
+        </div>
+        <div>
+          <div class="brand-title">NO BET</div>
+          <div class="brand-sub">ギャンブル遮断＆継続トラッカー</div>
+        </div>
+      </div>
+      <div class="header-status tabular" id="headerStatusBadge">継続中</div>
+    </header>
+
+    <!-- Main Scrollable Area -->
+    <main class="app-main">
+      <!-- ===================== TAB 1: HOME ===================== -->
+      <section class="tab-panel active" id="tab-home" aria-label="ホーム">
+        <!-- Live Streak Counter -->
+        <div class="card streak-card">
+          <div class="streak-caption">断ギャンブル継続時間</div>
+          <div class="streak-grid tabular">
+            <div class="streak-unit">
+              <span class="streak-num" id="streakDays">0</span>
+              <span class="streak-label">日</span>
+            </div>
+            <div class="streak-unit">
+              <span class="streak-num" id="streakHours">00</span>
+              <span class="streak-label">時間</span>
+            </div>
+            <div class="streak-unit">
+              <span class="streak-num" id="streakMinutes">00</span>
+              <span class="streak-label">分</span>
+            </div>
+            <div class="streak-unit">
+              <span class="streak-num" id="streakSeconds">00</span>
+              <span class="streak-label">秒</span>
+            </div>
+          </div>
+          <div class="streak-since tabular" id="streakSinceText">開始: --</div>
+        </div>
+
+        <!-- Emergency Urge Button (Prominent & Immediate) -->
+        <div class="card" style="padding: 12px; border-color: var(--danger-border); background: rgba(239, 68, 68, 0.06);">
+          <button type="button" class="btn btn-emergency" id="openUrgeModalBtn">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"/>
+              <line x1="12" y1="8" x2="12" y2="12"/>
+              <line x1="12" y1="16" x2="12.01" y2="16"/>
+            </svg>
+            今、やりたくなった（衝動ブレーキ）
+          </button>
+          <p class="small muted" style="text-align:center; margin: 8px 0 0;">
+            衝動のピークは数分で引きます。行動する前に3分だけ立ち止まる。
+          </p>
+        </div>
+
+        <!-- Key Metrics Grid -->
+        <div class="metrics-grid tabular">
+          <div class="metric-box">
+            <div class="metric-label">守った金額（推計）</div>
+            <div class="metric-val emerald" id="metricSaved">0円</div>
+            <div class="metric-sub" id="metricSavedSub">週15,000円換算</div>
+          </div>
+          <div class="metric-box">
+            <div class="metric-label">衝動に勝った回数</div>
+            <div class="metric-val" id="metricUrges">0回</div>
+            <div class="metric-sub">やり過ごした記録</div>
+          </div>
+          <div class="metric-box">
+            <div class="metric-label">連続チェックイン</div>
+            <div class="metric-val" id="metricCheckinStreak">0日</div>
+            <div class="metric-sub" id="metricCheckinTotal">累計 0日</div>
+          </div>
+        </div>
+
+        <!-- Optional Savings Goal Card -->
+        <div class="card" id="goalProgressCard" style="display:none;">
+          <div class="card-header" style="margin-bottom: 8px;">
+            <h2 class="card-title" id="goalCardTitle">目標の進捗</h2>
+            <span class="small tabular" style="color: var(--emerald); font-weight:700;" id="goalPercentText">0%</span>
+          </div>
+          <div class="progress-track">
+            <div class="progress-fill" id="goalProgressBar" style="width: 0%;"></div>
+          </div>
+          <div class="flex-between mt-2 small muted tabular">
+            <span id="goalSavedText">0円</span>
+            <span id="goalTargetText">目標 50,000円</span>
+          </div>
+        </div>
+
+        <!-- Daily Check-in Card -->
+        <div class="card">
+          <div class="card-header">
+            <h2 class="card-title">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                <line x1="16" y1="2" x2="16" y2="6"/>
+                <line x1="8" y1="2" x2="8" y2="6"/>
+                <line x1="3" y1="10" x2="21" y2="10"/>
+                <path d="m9 16 2 2 4-4"/>
+              </svg>
+              今日のチェックイン
+            </h2>
+            <span class="small muted tabular" id="todayDateLabel"></span>
+          </div>
+          <button type="button" class="btn btn-primary" id="dailyCheckinBtn">
+            今日の断ギャンブルを記録する
+          </button>
+          <div class="checkin-meta">
+            <span id="checkinStatusText">本日分はまだ未記録です</span>
+            <button type="button" class="text-link-btn" id="undoCheckinBtn" style="display:none;">取り消す</button>
+          </div>
+        </div>
+
+        <!-- Personal Vow Banner -->
+        <div class="card">
+          <div class="card-header">
+            <h2 class="card-title">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 20h9"/>
+                <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+              </svg>
+              自分の誓い・絶対にやらない理由
+            </h2>
+            <button type="button" class="icon-btn" id="quickEditVowBtn" title="誓いを編集" aria-label="誓いを編集">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+              </svg>
+            </button>
+          </div>
+          <div class="vow-box" id="homeVowText"></div>
+        </div>
+      </section>
+
+      <!-- ===================== TAB 2: LOGS & ANALYTICS ===================== -->
+      <section class="tab-panel" id="tab-logs" aria-label="記録・分析">
+        <!-- Monthly Calendar -->
+        <div class="card">
+          <div class="cal-header">
+            <button type="button" class="icon-btn" id="calPrevBtn" aria-label="前の月">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+            </button>
+            <div class="cal-month tabular" id="calMonthTitle">2026年11月</div>
+            <button type="button" class="icon-btn" id="calNextBtn" aria-label="次の月">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+            </button>
+          </div>
+
+          <div class="cal-weekdays">
+            <div class="cal-weekday">日</div>
+            <div class="cal-weekday">月</div>
+            <div class="cal-weekday">火</div>
+            <div class="cal-weekday">水</div>
+            <div class="cal-weekday">木</div>
+            <div class="cal-weekday">金</div>
+            <div class="cal-weekday">土</div>
+          </div>
+          <div class="cal-days tabular" id="calDaysGrid"></div>
+
+          <div class="cal-legend">
+            <span class="legend-item"><span class="dot dot-emerald"></span>チェックイン済</span>
+            <span class="legend-item"><span class="dot dot-amber"></span>衝動を回避</span>
+            <span class="legend-item"><span class="dot dot-red"></span>スリップ記録</span>
+          </div>
+
+          <div class="cal-detail-box" id="calSelectedDetail" style="display:none;"></div>
+        </div>
+
+        <!-- Trigger Analysis -->
+        <div class="card">
+          <div class="card-header">
+            <h2 class="card-title">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="18" y1="20" x2="18" y2="10"/>
+                <line x1="12" y1="20" x2="12" y2="4"/>
+                <line x1="6" y1="20" x2="6" y2="14"/>
+              </svg>
+              トリガー傾向分析（危険パターン）
+            </h2>
+            <span class="small muted tabular" id="triggerTotalCount">0件</span>
+          </div>
+          <div id="triggerAnalysisContainer"></div>
+        </div>
+
+        <!-- Recent History -->
+        <div class="card">
+          <div class="card-header">
+            <h2 class="card-title">最近の記録</h2>
+          </div>
+          <div class="filter-chips" id="logFilterChips">
+            <button type="button" class="chip active" data-filter="all">すべて</button>
+            <button type="button" class="chip" data-filter="urge">衝動回避</button>
+            <button type="button" class="chip" data-filter="checkin">チェックイン</button>
+            <button type="button" class="chip" data-filter="slip">スリップ</button>
+          </div>
+          <div class="log-list" id="recentLogsList"></div>
+        </div>
+      </section>
+
+      <!-- ===================== TAB 3: LOCKOUT CHECKLIST & SUPPORT ===================== -->
+      <section class="tab-panel" id="tab-lockout" aria-label="遮断リスト">
+        <div class="notice-banner">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0; margin-top:2px;">
+            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+            <line x1="12" y1="9" x2="12" y2="13"/>
+            <line x1="12" y1="17" x2="12.01" y2="17"/>
+          </svg>
+          <div>
+            <strong>Webアプリ単体では端末のアプリや投票サイトは遮断できません。</strong><br>
+            意思の力に頼らず、後悔や決意が強い今のうちにアカウント解約・端末制限・資金遮断を物理的に完了させることが最優先です。
+          </div>
+        </div>
+
+        <!-- Lockout Progress & Tasks -->
+        <div class="card">
+          <div class="card-header">
+            <h2 class="card-title">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+              </svg>
+              物理遮断チェックリスト
+            </h2>
+            <span class="small tabular" style="color: var(--emerald); font-weight:700;" id="checklistProgressText">0 / 6</span>
+          </div>
+          <div class="progress-track mb-2">
+            <div class="progress-fill" id="checklistProgressBar" style="width: 0%;"></div>
+          </div>
+
+          <div id="checklistItemsContainer"></div>
+
+          <div class="mt-3 pt-2" style="border-top: 1px solid var(--border-subtle); padding-top: 12px;">
+            <label class="field-label" for="newChecklistInput">独自の遮断タスクを追加</label>
+            <div class="input-row">
+              <input type="text" class="input" id="newChecklistInput" placeholder="例：投票用口座のキャッシュカードを家族に預ける" maxlength="100" />
+              <button type="button" class="btn btn-secondary btn-sm" id="addChecklistBtn">追加</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Public Support Hotlines -->
+        <div class="card">
+          <div class="card-header">
+            <h2 class="card-title">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
+              </svg>
+              無料・匿名の公的相談窓口
+            </h2>
+          </div>
+          <p class="small muted" style="margin: 0 0 12px;">
+            一人で抱え込んで借金に走る前に、専門窓口へ状況を話すだけでも頭が整理できます。
+          </p>
+
+          <div class="hotline-item">
+            <div>
+              <div class="hotline-name">ギャンブル依存症予防回復支援センター</div>
+              <div class="hotline-desc">年中無休・通話無料・匿名相談可（専門相談員対応）</div>
+            </div>
+            <a href="tel:0120683705" class="hotline-call tabular">0120-683-705</a>
+          </div>
+
+          <div class="hotline-item">
+            <div>
+              <div class="hotline-name">消費者ホットライン</div>
+              <div class="hotline-desc">支払い・契約・借金問題などの最寄り相談窓口を案内</div>
+            </div>
+            <a href="tel:188" class="hotline-call tabular">188</a>
+          </div>
+
+          <div class="hotline-item">
+            <div>
+              <div class="hotline-name">よりそいホットライン</div>
+              <div class="hotline-desc">24時間対応・通話無料・生活や心の悩み全般</div>
+            </div>
+            <a href="tel:0120279338" class="hotline-call tabular">0120-279-338</a>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===================== TAB 4: SETTINGS ===================== -->
+      <section class="tab-panel" id="tab-settings" aria-label="設定">
+        <!-- Basic Settings -->
+        <div class="card">
+          <div class="card-header">
+            <h2 class="card-title">基本設定</h2>
+          </div>
+
+          <div class="field">
+            <label class="field-label" for="settingStartTime">断ギャンブル開始日時</label>
+            <input type="datetime-local" class="input tabular" id="settingStartTime" />
+          </div>
+
+          <div class="field">
+            <label class="field-label" for="settingWeeklySpend">週あたりの平均使用額（円）</label>
+            <input type="number" class="input tabular" id="settingWeeklySpend" min="0" step="1000" placeholder="15000" />
+          </div>
+
+          <div class="field">
+            <label class="field-label" for="settingGoalAmount">目標貯蓄額（円・0でホーム非表示）</label>
+            <input type="number" class="input tabular" id="settingGoalAmount" min="0" step="5000" placeholder="50000" />
+          </div>
+
+          <div class="field">
+            <label class="field-label" for="settingGoalLabel">目標の用途</label>
+            <input type="text" class="input" id="settingGoalLabel" placeholder="例：生活防衛資金・貯金" maxlength="40" />
+          </div>
+
+          <div class="field">
+            <label class="field-label" for="settingVow">自分の誓い・絶対にやらない理由</label>
+            <textarea class="textarea" id="settingVow" maxlength="300"></textarea>
+          </div>
+
+          <button type="button" class="btn btn-primary" id="saveSettingsBtn">設定を保存する</button>
+        </div>
+
+        <!-- Custom Alternative Actions -->
+        <div class="card">
+          <div class="card-header">
+            <h2 class="card-title">衝動時の代替行動リスト</h2>
+          </div>
+          <p class="small muted" style="margin: 0 0 10px;">
+            「衝動ブレーキ」モーダルで提案される行動をカスタマイズできます。
+          </p>
+          <div id="settingsAltActionsList"></div>
+          <div class="input-row mt-2">
+            <input type="text" class="input" id="newAltActionInput" placeholder="例：筋トレを10分やる" maxlength="80" />
+            <button type="button" class="btn btn-secondary btn-sm" id="addAltActionBtn">追加</button>
+          </div>
+        </div>
+
+        <!-- Slip / Relapse Reset -->
+        <div class="card" style="border-color: var(--danger-border);">
+          <div class="card-header">
+            <h2 class="card-title" style="color: #fca5a5;">スリップ（再発）の記録とリセット</h2>
+          </div>
+          <p class="small muted" style="margin: 0 0 12px;">
+            万が一やってしまった場合でも隠さず記録し、原因（トリガー）を残したうえで今この瞬間から再スタートします。過去の履歴は消えません。
+          </p>
+          <button type="button" class="btn btn-danger-outline" id="openSlipModalBtn">
+            スリップ（再発）を記録してタイマーをリセット
+          </button>
+        </div>
+
+        <!-- Data Backup (JSON Export / Import) -->
+        <div class="card">
+          <div class="card-header">
+            <h2 class="card-title">データ管理（バックアップ・復元）</h2>
+          </div>
+          <p class="small muted" style="margin: 0 0 12px;">
+            データはすべてこの端末のブラウザ内に保存されています。機種変更やキャッシュ削除に備えてJSON形式でバックアップできます。
+          </p>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+            <button type="button" class="btn btn-secondary" id="exportJsonBtn">JSON書き出し</button>
+            <button type="button" class="btn btn-secondary" id="openImportModalBtn">JSON読み込み</button>
+          </div>
+          <button type="button" class="text-link-btn mt-3" id="openResetAllModalBtn" style="color: #fca5a5; display:block; margin-left:auto; margin-right:auto;">
+            すべてのデータを初期化
+          </button>
+        </div>
+      </section>
+    </main>
+
+    <!-- Bottom Tab Navigation -->
+    <nav class="bottom-nav" aria-label="メインナビゲーション">
+      <button type="button" class="nav-btn active" data-tab="home">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+          <polyline points="9 22 9 12 15 12 15 22"/>
+        </svg>
+        <span>ホーム</span>
+      </button>
+      <button type="button" class="nav-btn" data-tab="logs">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+          <line x1="16" y1="2" x2="16" y2="6"/>
+          <line x1="8" y1="2" x2="8" y2="6"/>
+          <line x1="3" y1="10" x2="21" y2="10"/>
+        </svg>
+        <span>記録・分析</span>
+      </button>
+      <button type="button" class="nav-btn" data-tab="lockout">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+        </svg>
+        <span>遮断リスト</span>
+      </button>
+      <button type="button" class="nav-btn" data-tab="settings">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="3"/>
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+        </svg>
+        <span>設定</span>
+      </button>
+    </nav>
+  </div>
+
+  <!-- ===================== MODAL 1: URGE BREAKER (FULLSCREEN) ===================== -->
+  <div class="modal-overlay modal-fullscreen" id="urgeModal" role="dialog" aria-modal="true" aria-labelledby="urgeModalTitle">
+    <div class="modal-sheet">
+      <div class="modal-header">
+        <h2 class="modal-title" id="urgeModalTitle" style="color: #fca5a5;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="12" y1="8" x2="12" y2="12"/>
+            <line x1="12" y1="16" x2="12.01" y2="16"/>
+          </svg>
+          緊急衝動ブレーキ（3分クールダウン）
+        </h2>
+        <button type="button" class="icon-btn" id="closeUrgeModalBtn" aria-label="閉じる">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <!-- 1. 3-Minute Breathing Timer -->
+        <div class="breathing-stage">
+          <div class="small muted" style="font-weight: 600;">4-4-4-4 ボックス呼吸（180秒）</div>
+          <div class="breath-visual">
+            <div class="breath-ring-outer"></div>
+            <div class="breath-circle" id="breathCircle"></div>
+            <div class="breath-center">
+              <div class="breath-phase-text" id="breathPhaseText">準備中</div>
+              <div class="breath-timer-big tabular" id="urgeCountdownText">03:00</div>
+            </div>
+          </div>
+          <div class="small muted" id="breathInstruction">吸う4秒 → 止める4秒 → 吐く4秒 → 止める4秒</div>
+          <div class="breath-controls">
+            <button type="button" class="btn btn-secondary btn-sm" id="toggleBreathTimerBtn">一時停止</button>
+            <button type="button" class="btn btn-secondary btn-sm" id="resetBreathTimerBtn">リセット</button>
+          </div>
+        </div>
+
+        <!-- 2. Personal Vow Reminder -->
+        <div class="card">
+          <div class="section-label">自分の誓い（今、思い出してほしいこと）</div>
+          <div class="vow-box" id="urgeVowDisplay"></div>
+        </div>
+
+        <!-- 3. Mathematical Reality Check -->
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">数学的リアリティチェック（控除率25%）</h3>
+          </div>
+          <p class="small muted" style="margin: 0 0 10px;">
+            今使おうとしている金額を入れると、公営競技等（還元率75%・控除率25%）で賭け続けた場合の期待残高と生活価値を表示します。
+          </p>
+          <div class="filter-chips" id="realityPresetChips">
+            <button type="button" class="chip" data-amount="3000">3,000円</button>
+            <button type="button" class="chip active" data-amount="10000">10,000円</button>
+            <button type="button" class="chip" data-amount="30000">30,000円</button>
+            <button type="button" class="chip" data-amount="50000">50,000円</button>
+          </div>
+          <div class="input-row">
+            <input type="number" class="input tabular" id="realityAmountInput" value="10000" min="100" step="1000" aria-label="仮の賭け金（円）" />
+            <span style="align-self:center; font-size:13px; color:var(--text-muted); padding-right:4px;">円</span>
+          </div>
+
+          <div class="reality-grid tabular" id="realityStatsGrid"></div>
+          <div class="reality-life-box" id="realityLifeBox"></div>
+        </div>
+
+        <!-- 4. Alternative Action Selector -->
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">今すぐできる代替行動</h3>
+            <button type="button" class="btn btn-secondary btn-sm" id="randomizeAltActionBtn">別の行動を提案</button>
+          </div>
+          <div class="alt-highlight" id="selectedAltActionText"></div>
+          <div class="filter-chips" id="altActionChips"></div>
+        </div>
+
+        <!-- 5. Trigger & Intensity Logging -->
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">今回の衝動を記録して完了する</h3>
+          </div>
+
+          <div class="field">
+            <label class="field-label">何がきっかけ（トリガー）だった？</label>
+            <div class="filter-chips" id="urgeTriggerChips"></div>
+          </div>
+
+          <div class="field">
+            <label class="field-label">衝動の強さ（1: 弱 〜 5: 極強）</label>
+            <div class="intensity-row" id="urgeIntensityRow">
+              <button type="button" class="intensity-btn" data-val="1">1</button>
+              <button type="button" class="intensity-btn" data-val="2">2</button>
+              <button type="button" class="intensity-btn active" data-val="3">3</button>
+              <button type="button" class="intensity-btn" data-val="4">4</button>
+              <button type="button" class="intensity-btn" data-val="5">5</button>
+            </div>
+          </div>
+
+          <div class="field">
+            <label class="field-label" for="urgeNoteInput">一言メモ（任意）</label>
+            <input type="text" class="input" id="urgeNoteInput" placeholder="例：レース結果を見そうになったがアプリを閉じた" maxlength="120" />
+          </div>
+
+          <button type="button" class="btn btn-primary" id="completeUrgeBtn" style="min-height: 52px; font-size: 15px;">
+            衝動をやり過ごした（記録する）
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== MODAL 2: SLIP / RELAPSE CONFIRMATION ===================== -->
+  <div class="modal-overlay" id="slipModal" role="dialog" aria-modal="true" aria-labelledby="slipModalTitle">
+    <div class="modal-sheet">
+      <div class="modal-header">
+        <h2 class="modal-title" id="slipModalTitle" style="color: #fca5a5;">スリップ（再発）の記録</h2>
+        <button type="button" class="icon-btn" id="closeSlipModalBtn" aria-label="閉じる">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p class="small muted" style="margin-top:0;">
+          ここで原因を記録すれば、次回の対策データとして活かせます。継続タイマーのみ現在時刻にリセットされ、これまでの履歴は保持されます。
+        </p>
+
+        <div class="field">
+          <label class="field-label">再発のきっかけ（トリガー）</label>
+          <div class="filter-chips" id="slipTriggerChips"></div>
+        </div>
+
+        <div class="field">
+          <label class="field-label" for="slipAmountInput">使った金額（円・任意）</label>
+          <input type="number" class="input tabular" id="slipAmountInput" min="0" step="1000" placeholder="0" />
+        </div>
+
+        <div class="field">
+          <label class="field-label" for="slipNoteInput">次回を防ぐためのメモ（任意）</label>
+          <textarea class="textarea" id="slipNoteInput" placeholder="例：口座に余剰資金を残していたのが原因。出金制限をかける。" maxlength="200"></textarea>
+        </div>
+
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 14px;">
+          <button type="button" class="btn btn-secondary" id="cancelSlipBtn">キャンセル</button>
+          <button type="button" class="btn btn-danger-outline" id="confirmSlipBtn">記録してリセット</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== MODAL 3: IMPORT / EXPORT JSON ===================== -->
+  <div class="modal-overlay" id="jsonModal" role="dialog" aria-modal="true" aria-labelledby="jsonModalTitle">
+    <div class="modal-sheet">
+      <div class="modal-header">
+        <h2 class="modal-title" id="jsonModalTitle">JSONデータのバックアップ・復元</h2>
+        <button type="button" class="icon-btn" id="closeJsonModalBtn" aria-label="閉じる">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div id="jsonExportView" style="display:none;">
+          <p class="small muted" style="margin-top:0;">
+            以下のJSONファイルをダウンロードするか、テキストをコピーしてメモ帳等に保管してください。
+          </p>
+          <textarea class="textarea tabular" id="exportJsonTextarea" readonly style="min-height: 160px; font-size: 12px;"></textarea>
+          <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px;">
+            <button type="button" class="btn btn-secondary" id="copyJsonBtn">テキストをコピー</button>
+            <button type="button" class="btn btn-primary" id="downloadJsonBtn">ファイル保存</button>
+          </div>
+        </div>
+
+        <div id="jsonImportView" style="display:none;">
+          <p class="small muted" style="margin-top:0;">
+            バックアップしたJSONファイルを選択するか、テキストを貼り付けて復元してください（現在のデータは上書きされます）。
+          </p>
+          <div class="field">
+            <input type="file" id="importJsonFileInput" accept="application/json,.json" class="input" />
+          </div>
+          <div class="field">
+            <label class="field-label" for="importJsonTextarea">またはJSONテキストを直接貼り付け</label>
+            <textarea class="textarea tabular" id="importJsonTextarea" placeholder='{"startTime": ...}' style="min-height: 140px; font-size: 12px;"></textarea>
+          </div>
+          <button type="button" class="btn btn-primary" id="applyImportJsonBtn">このデータで復元する</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== MODAL 4: RESET ALL CONFIRMATION ===================== -->
+  <div class="modal-overlay" id="resetAllModal" role="dialog" aria-modal="true" aria-labelledby="resetAllModalTitle">
+    <div class="modal-sheet">
+      <div class="modal-header">
+        <h2 class="modal-title" id="resetAllModalTitle" style="color: #fca5a5;">全データの初期化確認</h2>
+        <button type="button" class="icon-btn" id="closeResetAllModalBtn" aria-label="閉じる">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p class="small" style="margin-top:0;">
+          継続記録、チェックイン、衝動ログ、チェックリスト、設定など<strong>すべてのデータ</strong>が完全に削除され、初期状態に戻ります。よろしいですか？
+        </p>
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 14px;">
+          <button type="button" class="btn btn-secondary" id="cancelResetAllBtn">キャンセル</button>
+          <button type="button" class="btn btn-danger-outline" id="confirmResetAllBtn">初期化する</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Banner -->
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    (() => {
+      'use strict';
+
+      /* ========================================================================
+         Constants & Default State
+         ======================================================================== */
+      const STORAGE_KEY = 'nobet_tracker_state_v1';
+
+      const TRIGGERS = [
+        '暇・退屈',
+        'ストレス',
+        '負けを取り返したい',
+        'SNSや動画を見た',
+        '給料日・手元にお金がある',
+        'その他'
+      ];
+
+      const DEFAULT_CHECKLIST = [
+        { id: 'chk_1', text: 'ネット投票サービス（テレボート・即PAT・オッズパーク等）の解約・利用停止申請を行う', done: false, custom: false },
+        { id: 'chk_2', text: 'ギャンブル関連アプリを端末からすべて削除する', done: false, custom: false },
+        { id: 'chk_3', text: 'ブラウザのコンテンツ制限／スクリーンタイムで関連サイトをブロックする', done: false, custom: false },
+        { id: 'chk_4', text: 'SNS・YouTubeのギャンブル関連アカウントや予想屋をミュート・フォロー解除する', done: false, custom: false },
+        { id: 'chk_5', text: 'クレジットカードのキャッシング枠を0円に設定・ATM出金限度額を引き下げる', done: false, custom: false },
+        { id: 'chk_6', text: '銀行口座と投票アカウントの自動引き落とし・連携を解除する', done: false, custom: false }
+      ];
+
+      const DEFAULT_ALT_ACTIONS = [
+        'スマホを別の部屋に置いて10分歩く',
+        '冷たい水や炭酸水を1杯飲む',
+        '腕立て・スクワットを20回やる',
+        'シャワーを浴びる',
+        '手元の現金と今週の生活費予算を確認する',
+        '5分間だけ目を閉じて深呼吸する'
+      ];
+
+      function createDefaultState() {
+        return {
+          startTime: new Date().toISOString(),
+          weeklySpend: 15000,
+          goalAmount: 50000,
+          goalLabel: '生活防衛資金・貯金',
+          vow: '「取り返そう」と思った瞬間が一番危ない。借金せず、今日の生活を守る。',
+          checkins: {},
+          urges: [],
+          slips: [],
+          checklist: DEFAULT_CHECKLIST.map(item => ({ ...item })),
+          altActions: [...DEFAULT_ALT_ACTIONS]
+        };
+      }
+
+      /* ========================================================================
+         State Management (localStorage)
+         ======================================================================== */
+      let state = loadState();
+
+      function loadState() {
+        try {
+          const raw = localStorage.getItem(STORAGE_KEY);
+          if (!raw) {
+            const initial = createDefaultState();
+            saveStateRaw(initial);
+            return initial;
+          }
+          const parsed = JSON.parse(raw);
+          return sanitizeState(parsed);
+        } catch (err) {
+          console.error('Failed to load state:', err);
+          return createDefaultState();
+        }
+      }
+
+      function sanitizeState(raw) {
+        const def = createDefaultState();
+        if (!raw || typeof raw !== 'object') return def;
+
+        const startDate = new Date(raw.startTime);
+        return {
+          startTime: isNaN(startDate.getTime()) ? def.startTime : startDate.toISOString(),
+          weeklySpend: Number.isFinite(Number(raw.weeklySpend)) && Number(raw.weeklySpend) >= 0 ? Number(raw.weeklySpend) : def.weeklySpend,
+          goalAmount: Number.isFinite(Number(raw.goalAmount)) && Number(raw.goalAmount) >= 0 ? Number(raw.goalAmount) : def.goalAmount,
+          goalLabel: typeof raw.goalLabel === 'string' ? raw.goalLabel : def.goalLabel,
+          vow: typeof raw.vow === 'string' && raw.vow.trim() ? raw.vow : def.vow,
+          checkins: raw.checkins && typeof raw.checkins === 'object' && !Array.isArray(raw.checkins) ? raw.checkins : {},
+          urges: Array.isArray(raw.urges) ? raw.urges : [],
+          slips: Array.isArray(raw.slips) ? raw.slips : [],
+          checklist: Array.isArray(raw.checklist) && raw.checklist.length > 0 ? raw.checklist : def.checklist,
+          altActions: Array.isArray(raw.altActions) && raw.altActions.length > 0 ? raw.altActions : def.altActions
+        };
+      }
+
+      function saveStateRaw(obj) {
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(obj));
+        } catch (err) {
+          console.error('Failed to save state:', err);
+          showToast('保存容量のエラーが発生しました', true);
+        }
+      }
+
+      function saveState() {
+        saveStateRaw(state);
+      }
+
+      /* ========================================================================
+         Utility Helpers
+         ======================================================================== */
+      function escapeHtml(str) {
+        return String(str ?? '')
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#39;');
+      }
+
+      // Local timezone YYYY-MM-DD (avoids UTC offset bug in JST)
+      function getLocalDateKey(date = new Date()) {
+        const y = date.getFullYear();
+        const m = String(date.getMonth() + 1).padStart(2, '0');
+        const d = String(date.getDate()).padStart(2, '0');
+        return `${y}-${m}-${d}`;
+      }
+
+      function formatDateTimeJP(iso) {
+        const d = new Date(iso);
+        if (isNaN(d.getTime())) return '--';
+        const y = d.getFullYear();
+        const m = d.getMonth() + 1;
+        const day = d.getDate();
+        const hh = String(d.getHours()).padStart(2, '0');
+        const mm = String(d.getMinutes()).padStart(2, '0');
+        return `${y}/${m}/${day} ${hh}:${mm}`;
+      }
+
+      function formatTimeJP(iso) {
+        const d = new Date(iso);
+        if (isNaN(d.getTime())) return '--:--';
+        return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+      }
+
+      function toDatetimeLocalValue(iso) {
+        const d = new Date(iso);
+        if (isNaN(d.getTime())) return '';
+        const y = d.getFullYear();
+        const m = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        const hh = String(d.getHours()).padStart(2, '0');
+        const mm = String(d.getMinutes()).padStart(2, '0');
+        return `${y}-${m}-${day}T${hh}:${mm}`;
+      }
+
+      function formatJPY(num) {
+        const n = Math.max(0, Math.floor(Number(num) || 0));
+        return n.toLocaleString('ja-JP') + '円';
+      }
+
+      function generateId(prefix) {
+        return `${prefix}_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+      }
+
+      let toastTimer = null;
+      function showToast(msg, isDanger = false) {
+        const el = document.getElementById('toast');
+        el.textContent = msg;
+        el.classList.toggle('danger', isDanger);
+        el.classList.add('show');
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => el.classList.remove('show'), 2800);
+      }
+
+      /* ========================================================================
+         Calculations
+         ======================================================================== */
+      function getElapsedSeconds() {
+        const startMs = new Date(state.startTime).getTime();
+        const diffSec = Math.floor((Date.now() - startMs) / 1000);
+        return Math.max(0, diffSec);
+      }
+
+      function getEstimatedSavedYen() {
+        const sec = getElapsedSeconds();
+        const weekSec = 7 * 24 * 3600;
+        return (sec / weekSec) * state.weeklySpend;
+      }
+
+      function getConsecutiveCheckinDays() {
+        const today = new Date();
+        let cursor = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+        const todayKey = getLocalDateKey(cursor);
+
+        // If not checked in today yet, evaluate streak ending yesterday
+        if (!state.checkins[todayKey]) {
+          cursor.setDate(cursor.getDate() - 1);
+        }
+
+        let streak = 0;
+        while (state.checkins[getLocalDateKey(cursor)]) {
+          streak += 1;
+          cursor.setDate(cursor.getDate() - 1);
+        }
+        return streak;
+      }
+
+      /* ========================================================================
+         Tab Navigation
+         ======================================================================== */
+      let activeTab = 'home';
+
+      function switchTab(tabName) {
+        activeTab = tabName;
+        document.querySelectorAll('.tab-panel').forEach(p => {
+          p.classList.toggle('active', p.id === `tab-${tabName}`);
+        });
+        document.querySelectorAll('.nav-btn').forEach(b => {
+          b.classList.toggle('active', b.dataset.tab === tabName);
+        });
+
+        if (tabName === 'home') renderHome();
+        if (tabName === 'logs') renderLogsTab();
+        if (tabName === 'lockout') renderLockoutTab();
+        if (tabName === 'settings') renderSettingsTab();
+
+        window.scrollTo({ top: 0, behavior: 'instant' });
+      }
+
+      document.querySelectorAll('.nav-btn').forEach(btn => {
+        btn.addEventListener('click', () => switchTab(btn.dataset.tab));
+      });
+
+      /* ========================================================================
+         TAB 1: HOME DASHBOARD
+         ======================================================================== */
+      function updateLiveTimerAndMoney() {
+        const totalSec = getElapsedSeconds();
+        const days = Math.floor(totalSec / 86400);
+        const hours = Math.floor((totalSec % 86400) / 3600);
+        const minutes = Math.floor((totalSec % 3600) / 60);
+        const seconds = totalSec % 60;
+
+        document.getElementById('streakDays').textContent = days;
+        document.getElementById('streakHours').textContent = String(hours).padStart(2, '0');
+        document.getElementById('streakMinutes').textContent = String(minutes).padStart(2, '0');
+        document.getElementById('streakSeconds').textContent = String(seconds).padStart(2, '0');
+        document.getElementById('headerStatusBadge').textContent = `${days}日継続中`;
+
+        const saved = getEstimatedSavedYen();
+        document.getElementById('metricSaved').textContent = formatJPY(saved);
+
+        // Update savings goal if active
+        const goalCard = document.getElementById('goalProgressCard');
+        if (state.goalAmount > 0) {
+          goalCard.style.display = 'block';
+          const pct = Math.min(100, (saved / state.goalAmount) * 100);
+          document.getElementById('goalCardTitle').textContent = `目標：${state.goalLabel || '貯蓄目標'}`;
+          document.getElementById('goalPercentText').textContent = `${pct.toFixed(1)}%`;
+          document.getElementById('goalProgressBar').style.width = `${pct}%`;
+          document.getElementById('goalSavedText').textContent = `現在 ${formatJPY(saved)}`;
+          document.getElementById('goalTargetText').textContent = `目標 ${formatJPY(state.goalAmount)}`;
+        } else {
+          goalCard.style.display = 'none';
+        }
+      }
+
+      function renderHome() {
+        updateLiveTimerAndMoney();
+
+        document.getElementById('streakSinceText').textContent = `開始: ${formatDateTimeJP(state.startTime)}`;
+        document.getElementById('metricSavedSub').textContent = `週${formatJPY(state.weeklySpend)}換算`;
+        document.getElementById('metricUrges').textContent = `${state.urges.length}回`;
+
+        const streakDays = getConsecutiveCheckinDays();
+        const totalCheckins = Object.keys(state.checkins).length;
+        document.getElementById('metricCheckinStreak').textContent = `${streakDays}日`;
+        document.getElementById('metricCheckinTotal').textContent = `累計 ${totalCheckins}日`;
+
+        // Daily check-in state
+        const today = new Date();
+        const todayKey = getLocalDateKey(today);
+        const weekdays = ['日', '月', '火', '水', '木', '金', '土'];
+        document.getElementById('todayDateLabel').textContent =
+          `${today.getFullYear()}年${today.getMonth() + 1}月${today.getDate()}日(${weekdays[today.getDay()]})`;
+
+        const btn = document.getElementById('dailyCheckinBtn');
+        const statusText = document.getElementById('checkinStatusText');
+        const undoBtn = document.getElementById('undoCheckinBtn');
+        const todayRecord = state.checkins[todayKey];
+
+        if (todayRecord) {
+          btn.className = 'btn btn-checked';
+          btn.innerHTML = `
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            今日の断ギャンブルを記録済み
+          `;
+          statusText.textContent = `本日 ${formatTimeJP(todayRecord)} に記録完了`;
+          undoBtn.style.display = 'inline-block';
+        } else {
+          btn.className = 'btn btn-primary';
+          btn.textContent = '今日の断ギャンブルを記録する';
+          statusText.textContent = '本日分はまだ未記録です';
+          undoBtn.style.display = 'none';
+        }
+
+        // Personal vow
+        document.getElementById('homeVowText').textContent = state.vow;
+      }
+
+      document.getElementById('dailyCheckinBtn').addEventListener('click', () => {
+        const todayKey = getLocalDateKey();
+        if (state.checkins[todayKey]) {
+          showToast('本日分はすでに記録済みです');
+          return;
+        }
+        state.checkins[todayKey] = new Date().toISOString();
+        saveState();
+        renderHome();
+        showToast('今日の断ギャンブルを記録しました');
+      });
+
+      document.getElementById('undoCheckinBtn').addEventListener('click', () => {
+        const todayKey = getLocalDateKey();
+        if (state.checkins[todayKey]) {
+          delete state.checkins[todayKey];
+          saveState();
+          renderHome();
+          showToast('本日のチェックインを取り消しました');
+        }
+      });
+
+      document.getElementById('quickEditVowBtn').addEventListener('click', () => {
+        switchTab('settings');
+        setTimeout(() => {
+          const el = document.getElementById('settingVow');
+          el.focus();
+          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }, 80);
+      });
+
+      /* ========================================================================
+         URGE BREAKER MODAL (3-MIN BREATHING + REALITY CHECK + LOGGING)
+         ======================================================================== */
+      let urgeTimerInterval = null;
+      let urgeRemainingSec = 180;
+      let urgeTimerRunning = false;
+      let urgeBreathElapsed = 0; // tracks seconds for 16-sec box cycle
+
+      let selectedUrgeTrigger = TRIGGERS[0];
+      let selectedUrgeIntensity = 3;
+      let selectedAltAction = '';
+
+      function openUrgeModal() {
+        document.getElementById('urgeVowDisplay').textContent = state.vow;
+
+        // Reset urge form state
+        selectedUrgeTrigger = TRIGGERS[0];
+        selectedUrgeIntensity = 3;
+        selectedAltAction = state.altActions[Math.floor(Math.random() * state.altActions.length)] || DEFAULT_ALT_ACTIONS[0];
+        document.getElementById('urgeNoteInput').value = '';
+
+        renderUrgeTriggerChips();
+        renderUrgeIntensityButtons();
+        renderUrgeAltActions();
+        updateRealityCheck(Number(document.getElementById('realityAmountInput').value) || 10000);
+
+        // Start 180-second timer immediately
+        resetUrgeTimer(true);
+
+        document.getElementById('urgeModal').classList.add('open');
+        document.body.style.overflow = 'hidden';
+      }
+
+      function closeUrgeModal() {
+        stopUrgeTimer();
+        document.getElementById('urgeModal').classList.remove('open');
+        document.body.style.overflow = '';
+      }
+
+      function stopUrgeTimer() {
+        urgeTimerRunning = false;
+        if (urgeTimerInterval) {
+          clearInterval(urgeTimerInterval);
+          urgeTimerInterval = null;
+        }
+        document.getElementById('toggleBreathTimerBtn').textContent = '再開';
+      }
+
+      function resetUrgeTimer(autoStart = false) {
+        stopUrgeTimer();
+        urgeRemainingSec = 180;
+        urgeBreathElapsed = 0;
+        renderBreathingUI();
+        if (autoStart) startUrgeTimer();
+      }
+
+      function startUrgeTimer() {
+        if (urgeTimerRunning) return;
+        if (urgeRemainingSec <= 0) urgeRemainingSec = 180;
+        urgeTimerRunning = true;
+        document.getElementById('toggleBreathTimerBtn').textContent = '一時停止';
+        renderBreathingUI();
+
+        urgeTimerInterval = setInterval(() => {
+          urgeRemainingSec = Math.max(0, urgeRemainingSec - 1);
+          urgeBreathElapsed += 1;
+          renderBreathingUI();
+
+          if (urgeRemainingSec === 0) {
+            stopUrgeTimer();
+            document.getElementById('breathPhaseText').textContent = '3分完了';
+            document.getElementById('breathInstruction').textContent = 'ピークを乗り切りました。このまま記録して閉じましょう。';
+            showToast('3分間のクールダウンが完了しました');
+          }
+        }, 1000);
+      }
+
+      function renderBreathingUI() {
+        const mins = String(Math.floor(urgeRemainingSec / 60)).padStart(2, '0');
+        const secs = String(urgeRemainingSec % 60).padStart(2, '0');
+        document.getElementById('urgeCountdownText').textContent = `${mins}:${secs}`;
+
+        const circle = document.getElementById('breathCircle');
+        const phaseText = document.getElementById('breathPhaseText');
+        const instr = document.getElementById('breathInstruction');
+
+        if (!urgeTimerRunning && urgeRemainingSec === 0) {
+          circle.className = 'breath-circle contract';
+          return;
+        }
+
+        const cyclePos = urgeBreathElapsed % 16; // 0..15
+        const secInPhase = (cyclePos % 4) + 1;
+
+        if (cyclePos < 4) {
+          phaseText.textContent = `吸う (${secInPhase}/4)`;
+          instr.textContent = '鼻からゆっくり4秒かけて息を吸い込む';
+          circle.className = 'breath-circle expand';
+        } else if (cyclePos < 8) {
+          phaseText.textContent = `止める (${secInPhase}/4)`;
+          instr.textContent = '肩の力を抜いて4秒キープする';
+          circle.className = 'breath-circle hold-full';
+        } else if (cyclePos < 12) {
+          phaseText.textContent = `吐く (${secInPhase}/4)`;
+          instr.textContent = '口から細く長く4秒かけて吐き切る';
+          circle.className = 'breath-circle contract';
+        } else {
+          phaseText.textContent = `止める (${secInPhase}/4)`;
+          instr.textContent = '吐き切った状態で4秒静かに待つ';
+          circle.className = 'breath-circle hold-empty';
+        }
+      }
+
+      function updateRealityCheck(amount) {
+        const safeAmount = Math.max(0, Number(amount) || 0);
+        const rate = 0.75; // 25% house edge (公営競技等の標準控除率)
+
+        const after1 = safeAmount * Math.pow(rate, 1);
+        const after3 = safeAmount * Math.pow(rate, 3);
+        const after5 = safeAmount * Math.pow(rate, 5);
+        const after10 = safeAmount * Math.pow(rate, 10);
+
+        document.getElementById('realityStatsGrid').innerHTML = `
+          <div class="reality-stat">
+            <div class="reality-stat-label">1回賭けた期待値 (-25%)</div>
+            <div class="reality-stat-val loss">${formatJPY(after1)}</div>
+          </div>
+          <div class="reality-stat">
+            <div class="reality-stat-label">3回連続の期待残高</div>
+            <div class="reality-stat-val loss">${formatJPY(after3)}</div>
+          </div>
+          <div class="reality-stat">
+            <div class="reality-stat-label">5回連続の期待残高</div>
+            <div class="reality-stat-val loss">${formatJPY(after5)}</div>
+          </div>
+          <div class="reality-stat">
+            <div class="reality-stat-label">10回連続の期待残高</div>
+            <div class="reality-stat-val loss">${formatJPY(after10)}</div>
+          </div>
+        `;
+
+        const foodDays = (safeAmount / 1000).toFixed(1).replace(/\.0$/, '');
+        const meals = Math.floor(safeAmount / 800);
+        document.getElementById('realityLifeBox').innerHTML = `
+          <strong>この${formatJPY(safeAmount)}を守れば：</strong>
+          食費 <strong>約${foodDays}日分</strong>（1日1,000円換算） ／ 定食・昼食 <strong>${meals}食分</strong> に相当します。賭け続けるほど数学的にゼロへ収束します。
+        `;
+      }
+
+      function renderUrgeAltActions() {
+        document.getElementById('selectedAltActionText').textContent = selectedAltAction;
+        const container = document.getElementById('altActionChips');
+        container.innerHTML = state.altActions.map((act, idx) => `
+          <button type="button" class="chip ${act === selectedAltAction ? 'active' : ''}" data-action-idx="${idx}">
+            ${escapeHtml(act)}
+          </button>
+        `).join('');
+
+        container.querySelectorAll('.chip').forEach(chip => {
+          chip.addEventListener('click', () => {
+            selectedAltAction = state.altActions[Number(chip.dataset.actionIdx)];
+            renderUrgeAltActions();
+          });
+        });
+      }
+
+      function renderUrgeTriggerChips() {
+        const container = document.getElementById('urgeTriggerChips');
+        container.innerHTML = TRIGGERS.map(t => `
+          <button type="button" class="chip ${t === selectedUrgeTrigger ? 'active' : ''}" data-trigger="${escapeHtml(t)}">
+            ${escapeHtml(t)}
+          </button>
+        `).join('');
+
+        container.querySelectorAll('.chip').forEach(chip => {
+          chip.addEventListener('click', () => {
+            selectedUrgeTrigger = chip.dataset.trigger;
+            renderUrgeTriggerChips();
+          });
+        });
+      }
+
+      function renderUrgeIntensityButtons() {
+        document.querySelectorAll('#urgeIntensityRow .intensity-btn').forEach(btn => {
+          btn.classList.toggle('active', Number(btn.dataset.val) === selectedUrgeIntensity);
+        });
+      }
+
+      document.getElementById('openUrgeModalBtn').addEventListener('click', openUrgeModal);
+      document.getElementById('closeUrgeModalBtn').addEventListener('click', closeUrgeModal);
+
+      document.getElementById('toggleBreathTimerBtn').addEventListener('click', () => {
+        if (urgeTimerRunning) stopUrgeTimer();
+        else startUrgeTimer();
+      });
+
+      document.getElementById('resetBreathTimerBtn').addEventListener('click', () => {
+        resetUrgeTimer(true);
+      });
+
+      document.querySelectorAll('#realityPresetChips .chip').forEach(chip => {
+        chip.addEventListener('click', () => {
+          const amt = Number(chip.dataset.amount);
+          document.getElementById('realityAmountInput').value = amt;
+          document.querySelectorAll('#realityPresetChips .chip').forEach(c => c.classList.remove('active'));
+          chip.classList.add('active');
+          updateRealityCheck(amt);
+        });
+      });
+
+      document.getElementById('realityAmountInput').addEventListener('input', (e) => {
+        const val = Number(e.target.value);
+        document.querySelectorAll('#realityPresetChips .chip').forEach(c => {
+          c.classList.toggle('active', Number(c.dataset.amount) === val);
+        });
+        updateRealityCheck(val);
+      });
+
+      document.getElementById('randomizeAltActionBtn').addEventListener('click', () => {
+        if (state.altActions.length <= 1) return;
+        let next = selectedAltAction;
+        let guard = 0;
+        while (next === selectedAltAction && guard < 10) {
+          next = state.altActions[Math.floor(Math.random() * state.altActions.length)];
+          guard += 1;
+        }
+        selectedAltAction = next;
+        renderUrgeAltActions();
+      });
+
+      document.querySelectorAll('#urgeIntensityRow .intensity-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          selectedUrgeIntensity = Number(btn.dataset.val);
+          renderUrgeIntensityButtons();
+        });
+      });
+
+      document.getElementById('completeUrgeBtn').addEventListener('click', () => {
+        const now = new Date();
+        const entry = {
+          id: generateId('urge'),
+          timestamp: now.toISOString(),
+          date: getLocalDateKey(now),
+          trigger: selectedUrgeTrigger,
+          intensity: selectedUrgeIntensity,
+          actionTaken: selectedAltAction,
+          note: document.getElementById('urgeNoteInput').value.trim()
+        };
+        state.urges.unshift(entry);
+        saveState();
+        closeUrgeModal();
+        renderHome();
+        if (activeTab === 'logs') renderLogsTab();
+        showToast('衝動をやり過ごしました（記録を追加）');
+      });
+
+      /* ========================================================================
+         TAB 2: LOGS & ANALYTICS
+         ======================================================================== */
+      let calYear = new Date().getFullYear();
+      let calMonth = new Date().getMonth(); // 0..11
+      let selectedCalDateKey = getLocalDateKey();
+      let currentLogFilter = 'all';
+
+      function renderLogsTab() {
+        renderCalendar();
+        renderTriggerAnalysis();
+        renderRecentLogs();
+      }
+
+      function renderCalendar() {
+        document.getElementById('calMonthTitle').textContent = `${calYear}年${calMonth + 1}月`;
+
+        const firstDay = new Date(calYear, calMonth, 1);
+        const startWeekday = firstDay.getDay();
+        const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
+        const todayKey = getLocalDateKey();
+
+        // Index urges and slips by date for fast lookup
+        const urgeDates = new Set(state.urges.map(u => u.date));
+        const slipDates = new Set(state.slips.map(s => s.date));
+
+        let html = '';
+        for (let i = 0; i < startWeekday; i++) {
+          html += `<div class="cal-day empty"></div>`;
+        }
+
+        for (let day = 1; day <= daysInMonth; day++) {
+          const key = `${calYear}-${String(calMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+          const isChecked = Boolean(state.checkins[key]);
+          const hasUrge = urgeDates.has(key);
+          const hasSlip = slipDates.has(key);
+          const isToday = key === todayKey;
+          const isSelected = key === selectedCalDateKey;
+
+          const classes = [
+            'cal-day',
+            isChecked ? 'checked' : '',
+            isToday ? 'today' : '',
+            isSelected ? 'selected' : ''
+          ].filter(Boolean).join(' ');
+
+          let dots = '';
+          if (hasUrge || hasSlip) {
+            dots = `<div class="cal-dots">
+              ${hasUrge ? '<span class="dot dot-amber"></span>' : ''}
+              ${hasSlip ? '<span class="dot dot-red"></span>' : ''}
+            </div>`;
+          }
+
+          html += `<button type="button" class="${classes}" data-date="${key}">
+            <span>${day}</span>
+            ${dots}
+          </button>`;
+        }
+
+        const grid = document.getElementById('calDaysGrid');
+        grid.innerHTML = html;
+
+        grid.querySelectorAll('.cal-day[data-date]').forEach(btn => {
+          btn.addEventListener('click', () => {
+            selectedCalDateKey = btn.dataset.date;
+            renderCalendar();
+          });
+        });
+
+        renderSelectedDayDetail();
+      }
+
+      function renderSelectedDayDetail() {
+        const box = document.getElementById('calSelectedDetail');
+        if (!selectedCalDateKey) {
+          box.style.display = 'none';
+          return;
+        }
+
+        const checkinTs = state.checkins[selectedCalDateKey];
+        const dayUrges = state.urges.filter(u => u.date === selectedCalDateKey);
+        const daySlips = state.slips.filter(s => s.date === selectedCalDateKey);
+
+        const [y, m, d] = selectedCalDateKey.split('-');
+        let content = `<div style="font-weight:700; margin-bottom:6px;">${Number(y)}年${Number(m)}月${Number(d)}日の記録</div>`;
+
+        if (!checkinTs && dayUrges.length === 0 && daySlips.length === 0) {
+          content += `<div class="muted small">この日の記録はありません。</div>`;
+        } else {
+          if (checkinTs) {
+            content += `<div class="small" style="color:var(--emerald); margin-bottom:4px;">● チェックイン済（${formatTimeJP(checkinTs)}）</div>`;
+          }
+          dayUrges.forEach(u => {
+            content += `<div class="small" style="color:#fde68a; margin-bottom:4px;">● 衝動回避（${formatTimeJP(u.timestamp)}）：${escapeHtml(u.trigger)} / 強さ${u.intensity}</div>`;
+          });
+          daySlips.forEach(s => {
+            content += `<div class="small" style="color:#fca5a5; margin-bottom:4px;">● スリップ（${formatTimeJP(s.timestamp)}）：${escapeHtml(s.trigger)}${s.amount ? ` / ${formatJPY(s.amount)}` : ''}</div>`;
+          });
+        }
+
+        box.innerHTML = content;
+        box.style.display = 'block';
+      }
+
+      function renderTriggerAnalysis() {
+        const container = document.getElementById('triggerAnalysisContainer');
+        const counts = {};
+        let total = 0;
+
+        state.urges.forEach(u => {
+          const t = u.trigger || 'その他';
+          counts[t] = (counts[t] || 0) + 1;
+          total += 1;
+        });
+
+        state.slips.forEach(s => {
+          const t = s.trigger || 'その他';
+          counts[t] = (counts[t] || 0) + 1;
+          total += 1;
+        });
+
+        document.getElementById('triggerTotalCount').textContent = `計 ${total}件`;
+
+        if (total === 0) {
+          container.innerHTML = `<div class="empty-state">まだ衝動やスリップの記録がありません。<br>衝動ブレーキを使うと危険パターンが自動集計されます。</div>`;
+          return;
+        }
+
+        const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]);
+        container.innerHTML = sorted.map(([label, count]) => {
+          const pct = Math.round((count / total) * 100);
+          return `
+            <div class="trigger-row">
+              <div class="trigger-meta">
+                <span>${escapeHtml(label)}</span>
+                <span class="tabular muted">${count}回 (${pct}%)</span>
+              </div>
+              <div class="progress-track">
+                <div class="progress-fill amber" style="width:${pct}%;"></div>
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
+
+      function renderRecentLogs() {
+        const listEl = document.getElementById('recentLogsList');
+        const combined = [];
+
+        if (currentLogFilter === 'all' || currentLogFilter === 'urge') {
+          state.urges.forEach(u => combined.push({ type: 'urge', timestamp: u.timestamp, data: u }));
+        }
+        if (currentLogFilter === 'all' || currentLogFilter === 'checkin') {
+          Object.entries(state.checkins).forEach(([dateKey, ts]) => {
+            combined.push({ type: 'checkin', timestamp: ts, dateKey });
+          });
+        }
+        if (currentLogFilter === 'all' || currentLogFilter === 'slip') {
+          state.slips.forEach(s => combined.push({ type: 'slip', timestamp: s.timestamp, data: s }));
+        }
+
+        combined.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+
+        if (combined.length === 0) {
+          listEl.innerHTML = `<div class="empty-state">表示できる記録がありません。</div>`;
+          return;
+        }
+
+        listEl.innerHTML = combined.slice(0, 40).map(item => {
+          if (item.type === 'checkin') {
+            return `
+              <div class="log-item">
+                <div class="log-top">
+                  <span class="badge badge-emerald">チェックイン</span>
+                  <span class="small muted tabular">${formatDateTimeJP(item.timestamp)}</span>
+                </div>
+                <div class="small" style="color:var(--text-secondary);">断ギャンブルを1日達成</div>
+              </div>
+            `;
+          }
+          if (item.type === 'urge') {
+            const u = item.data;
+            return `
+              <div class="log-item">
+                <div class="log-top">
+                  <span class="badge badge-amber">衝動回避 ・ 強さ ${u.intensity}/5</span>
+                  <span class="small muted tabular">${formatDateTimeJP(u.timestamp)}</span>
+                </div>
+                <div class="small" style="font-weight:700; margin-top:4px;">トリガー：${escapeHtml(u.trigger)}</div>
+                ${u.actionTaken ? `<div class="small muted mt-2">代替行動：${escapeHtml(u.actionTaken)}</div>` : ''}
+                ${u.note ? `<div class="small mt-2" style="color:var(--text-secondary);">${escapeHtml(u.note)}</div>` : ''}
+              </div>
+            `;
+          }
+          const s = item.data;
+          return `
+            <div class="log-item" style="border-color: var(--danger-border);">
+              <div class="log-top">
+                <span class="badge badge-red">スリップ記録</span>
+                <span class="small muted tabular">${formatDateTimeJP(s.timestamp)}</span>
+              </div>
+              <div class="small" style="font-weight:700; margin-top:4px;">
+                きっかけ：${escapeHtml(s.trigger)}${s.amount ? `（${formatJPY(s.amount)}）` : ''}
+              </div>
+              ${s.note ? `<div class="small mt-2" style="color:var(--text-secondary);">${escapeHtml(s.note)}</div>` : ''}
+            </div>
+          `;
+        }).join('');
+      }
+
+      document.getElementById('calPrevBtn').addEventListener('click', () => {
+        calMonth -= 1;
+        if (calMonth < 0) { calMonth = 11; calYear -= 1; }
+        renderCalendar();
+      });
+
+      document.getElementById('calNextBtn').addEventListener('click', () => {
+        calMonth += 1;
+        if (calMonth > 11) { calMonth = 0; calYear += 1; }
+        renderCalendar();
+      });
+
+      document.querySelectorAll('#logFilterChips .chip').forEach(chip => {
+        chip.addEventListener('click', () => {
+          currentLogFilter = chip.dataset.filter;
+          document.querySelectorAll('#logFilterChips .chip').forEach(c => c.classList.remove('active'));
+          chip.classList.add('active');
+          renderRecentLogs();
+        });
+      });
+
+      /* ========================================================================
+         TAB 3: PHYSICAL LOCKOUT CHECKLIST
+         ======================================================================== */
+      function renderLockoutTab() {
+        const total = state.checklist.length;
+        const doneCount = state.checklist.filter(i => i.done).length;
+        const pct = total > 0 ? Math.round((doneCount / total) * 100) : 0;
+
+        document.getElementById('checklistProgressText').textContent = `${doneCount} / ${total} 完了 (${pct}%)`;
+        document.getElementById('checklistProgressBar').style.width = `${pct}%`;
+
+        const container = document.getElementById('checklistItemsContainer');
+        container.innerHTML = state.checklist.map(item => `
+          <div class="checklist-item">
+            <button type="button" class="check-toggle ${item.done ? 'done' : ''}" data-toggle-id="${escapeHtml(item.id)}" aria-label="完了を切り替え">
+              ${item.done ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>' : ''}
+            </button>
+            <div class="check-text ${item.done ? 'done' : ''}" data-toggle-id="${escapeHtml(item.id)}">${escapeHtml(item.text)}</div>
+            ${item.custom ? `
+              <button type="button" class="icon-btn" data-delete-id="${escapeHtml(item.id)}" aria-label="タスクを削除" style="width:28px; height:28px;">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              </button>
+            ` : ''}
+          </div>
+        `).join('');
+
+        container.querySelectorAll('[data-toggle-id]').forEach(el => {
+          el.addEventListener('click', () => {
+            const id = el.dataset.toggleId;
+            const target = state.checklist.find(i => i.id === id);
+            if (target) {
+              target.done = !target.done;
+              saveState();
+              renderLockoutTab();
+            }
+          });
+        });
+
+        container.querySelectorAll('[data-delete-id]').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const id = btn.dataset.deleteId;
+            state.checklist = state.checklist.filter(i => i.id !== id);
+            saveState();
+            renderLockoutTab();
+            showToast('カスタムタスクを削除しました');
+          });
+        });
+      }
+
+      function addCustomChecklistItem() {
+        const input = document.getElementById('newChecklistInput');
+        const text = input.value.trim();
+        if (!text) return;
+        state.checklist.push({
+          id: generateId('chk'),
+          text,
+          done: false,
+          custom: true
+        });
+        input.value = '';
+        saveState();
+        renderLockoutTab();
+        showToast('遮断タスクを追加しました');
+      }
+
+      document.getElementById('addChecklistBtn').addEventListener('click', addCustomChecklistItem);
+      document.getElementById('newChecklistInput').addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          addCustomChecklistItem();
+        }
+      });
+
+      /* ========================================================================
+         TAB 4: SETTINGS & DATA MANAGEMENT
+         ======================================================================== */
+      function renderSettingsTab() {
+        document.getElementById('settingStartTime').value = toDatetimeLocalValue(state.startTime);
+        document.getElementById('settingWeeklySpend').value = state.weeklySpend;
+        document.getElementById('settingGoalAmount').value = state.goalAmount;
+        document.getElementById('settingGoalLabel').value = state.goalLabel;
+        document.getElementById('settingVow').value = state.vow;
+        renderSettingsAltActions();
+      }
+
+      function renderSettingsAltActions() {
+        const container = document.getElementById('settingsAltActionsList');
+        container.innerHTML = state.altActions.map((act, idx) => `
+          <div class="action-item-row">
+            <span>${escapeHtml(act)}</span>
+            <button type="button" class="icon-btn" data-remove-alt="${idx}" aria-label="削除" style="width:28px; height:28px;">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+          </div>
+        `).join('');
+
+        container.querySelectorAll('[data-remove-alt]').forEach(btn => {
+          btn.addEventListener('click', () => {
+            if (state.altActions.length <= 1) {
+              showToast('代替行動は最低1つ残す必要があります', true);
+              return;
+            }
+            const idx = Number(btn.dataset.removeAlt);
+            state.altActions.splice(idx, 1);
+            saveState();
+            renderSettingsAltActions();
+            showToast('代替行動を削除しました');
+          });
+        });
+      }
+
+      document.getElementById('saveSettingsBtn').addEventListener('click', () => {
+        const startInputVal = document.getElementById('settingStartTime').value;
+        const parsedStart = new Date(startInputVal);
+        if (isNaN(parsedStart.getTime())) {
+          showToast('開始日時を正しく入力してください', true);
+          return;
+        }
+
+        const weekly = Math.max(0, Number(document.getElementById('settingWeeklySpend').value) || 0);
+        const goalAmt = Math.max(0, Number(document.getElementById('settingGoalAmount').value) || 0);
+        const goalLbl = document.getElementById('settingGoalLabel').value.trim() || '貯蓄目標';
+        const vowText = document.getElementById('settingVow').value.trim();
+
+        state.startTime = parsedStart.toISOString();
+        state.weeklySpend = weekly;
+        state.goalAmount = goalAmt;
+        state.goalLabel = goalLbl;
+        state.vow = vowText || '「取り返そう」と思った瞬間が一番危ない。借金せず、今日の生活を守る。';
+
+        saveState();
+        renderHome();
+        showToast('設定を保存しました');
+      });
+
+      function addAltAction() {
+        const input = document.getElementById('newAltActionInput');
+        const text = input.value.trim();
+        if (!text) return;
+        state.altActions.push(text);
+        input.value = '';
+        saveState();
+        renderSettingsAltActions();
+        showToast('代替行動を追加しました');
+      }
+
+      document.getElementById('addAltActionBtn').addEventListener('click', addAltAction);
+      document.getElementById('newAltActionInput').addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          addAltAction();
+        }
+      });
+
+      /* ========================================================================
+         SLIP / RELAPSE MODAL
+         ======================================================================== */
+      let selectedSlipTrigger = TRIGGERS[2]; // Default to "負けを取り返したい"
+
+      function renderSlipTriggerChips() {
+        const container = document.getElementById('slipTriggerChips');
+        container.innerHTML = TRIGGERS.map(t => `
+          <button type="button" class="chip ${t === selectedSlipTrigger ? 'active-danger' : ''}" data-slip-trigger="${escapeHtml(t)}">
+            ${escapeHtml(t)}
+          </button>
+        `).join('');
+
+        container.querySelectorAll('.chip').forEach(chip => {
+          chip.addEventListener('click', () => {
+            selectedSlipTrigger = chip.dataset.slipTrigger;
+            renderSlipTriggerChips();
+          });
+        });
+      }
+
+      function openSlipModal() {
+        selectedSlipTrigger = TRIGGERS[2];
+        document.getElementById('slipAmountInput').value = '';
+        document.getElementById('slipNoteInput').value = '';
+        renderSlipTriggerChips();
+        document.getElementById('slipModal').classList.add('open');
+      }
+
+      function closeSlipModal() {
+        document.getElementById('slipModal').classList.remove('open');
+      }
+
+      document.getElementById('openSlipModalBtn').addEventListener('click', openSlipModal);
+      document.getElementById('closeSlipModalBtn').addEventListener('click', closeSlipModal);
+      document.getElementById('cancelSlipBtn').addEventListener('click', closeSlipModal);
+
+      document.getElementById('confirmSlipBtn').addEventListener('click', () => {
+        const now = new Date();
+        const prevSec = getElapsedSeconds();
+        const amt = Math.max(0, Number(document.getElementById('slipAmountInput').value) || 0);
+        const note = document.getElementById('slipNoteInput').value.trim();
+
+        state.slips.unshift({
+          id: generateId('slip'),
+          timestamp: now.toISOString(),
+          date: getLocalDateKey(now),
+          trigger: selectedSlipTrigger,
+          amount: amt,
+          note,
+          previousStreakSeconds: prevSec
+        });
+
+        state.startTime = now.toISOString();
+        saveState();
+        closeSlipModal();
+        renderSettingsTab();
+        renderHome();
+        showToast('スリップを記録し、今から再スタートしました');
+      });
+
+      /* ========================================================================
+         JSON EXPORT / IMPORT & RESET ALL MODALS
+         ======================================================================== */
+      function openJsonModal(mode) {
+        const modal = document.getElementById('jsonModal');
+        const expView = document.getElementById('jsonExportView');
+        const impView = document.getElementById('jsonImportView');
+
+        if (mode === 'export') {
+          document.getElementById('jsonModalTitle').textContent = 'JSONデータ書き出し（バックアップ）';
+          expView.style.display = 'block';
+          impView.style.display = 'none';
+          document.getElementById('exportJsonTextarea').value = JSON.stringify(state, null, 2);
+        } else {
+          document.getElementById('jsonModalTitle').textContent = 'JSONデータ読み込み（復元）';
+          expView.style.display = 'none';
+          impView.style.display = 'block';
+          document.getElementById('importJsonTextarea').value = '';
+          document.getElementById('importJsonFileInput').value = '';
+        }
+        modal.classList.add('open');
+      }
+
+      function closeJsonModal() {
+        document.getElementById('jsonModal').classList.remove('open');
+      }
+
+      document.getElementById('exportJsonBtn').addEventListener('click', () => openJsonModal('export'));
+      document.getElementById('openImportModalBtn').addEventListener('click', () => openJsonModal('import'));
+      document.getElementById('closeJsonModalBtn').addEventListener('click', closeJsonModal);
+
+      document.getElementById('copyJsonBtn').addEventListener('click', () => {
+        const textarea = document.getElementById('exportJsonTextarea');
+        textarea.select();
+        textarea.setSelectionRange(0, 999999);
+        try {
+          document.execCommand('copy');
+          showToast('JSONテキストをコピーしました');
+        } catch (err) {
+          showToast('コピーに失敗しました。手動で選択してください', true);
+        }
+      });
+
+      document.getElementById('downloadJsonBtn').addEventListener('click', () => {
+        try {
+          const jsonStr = JSON.stringify(state, null, 2);
+          const blob = new Blob([jsonStr], { type: 'application/json' });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `nobet-backup-${getLocalDateKey()}.json`;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+          showToast('バックアップファイルを保存しました');
+        } catch (err) {
+          showToast('ダウンロードに失敗しました。コピーをご利用ください', true);
+        }
+      });
+
+      document.getElementById('importJsonFileInput').addEventListener('change', (e) => {
+        const file = e.target.files && e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = () => {
+          document.getElementById('importJsonTextarea').value = String(reader.result || '');
+        };
+        reader.readAsText(file);
+      });
+
+      document.getElementById('applyImportJsonBtn').addEventListener('click', () => {
+        const raw = document.getElementById('importJsonTextarea').value.trim();
+        if (!raw) {
+          showToast('JSONデータを入力または選択してください', true);
+          return;
+        }
+        try {
+          const parsed = JSON.parse(raw);
+          state = sanitizeState(parsed);
+          saveState();
+          closeJsonModal();
+          renderSettingsTab();
+          renderHome();
+          showToast('データを復元しました');
+        } catch (err) {
+          showToast('JSONの形式が正しくありません', true);
+        }
+      });
+
+      // Reset All Modal
+      const resetAllModal = document.getElementById('resetAllModal');
+      document.getElementById('openResetAllModalBtn').addEventListener('click', () => resetAllModal.classList.add('open'));
+      document.getElementById('closeResetAllModalBtn').addEventListener('click', () => resetAllModal.classList.remove('open'));
+      document.getElementById('cancelResetAllBtn').addEventListener('click', () => resetAllModal.classList.remove('open'));
+
+      document.getElementById('confirmResetAllBtn').addEventListener('click', () => {
+        state = createDefaultState();
+        saveState();
+        resetAllModal.classList.remove('open');
+        renderSettingsTab();
+        renderHome();
+        showToast('すべてのデータを初期化しました');
+      });
+
+      // Close backdrop clicks for non-fullscreen modals
+      ['slipModal', 'jsonModal', 'resetAllModal'].forEach(id => {
+        const modal = document.getElementById(id);
+        modal.addEventListener('click', (e) => {
+          if (e.target === modal) modal.classList.remove('open');
+        });
+      });
+
+      /* ========================================================================
+         Initialization & Ticker
+         ======================================================================== */
+      renderHome();
+      renderLockoutTab();
+
+      // 1-second real-time update for streak timer and estimated money saved
+      setInterval(() => {
+        updateLiveTimerAndMoney();
+      }, 1000);
+    })();
+  </script>
+</body>
+</html>
